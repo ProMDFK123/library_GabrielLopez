@@ -62,7 +62,6 @@ package "service" <<service>> {
   }
 
   class LoanService {
-    - {static} int DUE_DAYS = 21
     - LoanDao loanDao
     - BookDao bookDao
     + findAll() : List<Loan>
@@ -88,11 +87,27 @@ package "service" <<service>> {
     + findAll() : List<Reservation>
     + fulfill(int) : Loan
   }
+  class LoanPolicy {
+    {static} + int DUE_DAYS = 21
+    {static} + double FEE_PER_DAY = 1.0
+    {static} + dueDate(LocalDate) : LocalDate
+  }
+  class NotFoundException extends RuntimeException
 }
 
 package "dao" <<dao>> {
+  abstract class BaseDao<T> {
+    # Dao<T, Integer> dao
+    + findAll() : List<T>
+    + findById(int) : T
+    + create(T) : void
+    + update(T) : void
+    + delete(T) : void
+    + transaction(Callable<R>) : R
+  }
+
   class BookDao {
-    - Dao<Book, Integer> dao
+    ' inherited DAO field
     + findAll() : List<Book>
     + findById(int) : Book
     + create(Book) : void
@@ -101,7 +116,7 @@ package "dao" <<dao>> {
   }
 
   class MemberDao {
-    - Dao<Member, Integer> dao
+    ' inherited DAO field
     + findAll() : List<Member>
     + findById(int) : Member
     + create(Member) : void
@@ -109,7 +124,7 @@ package "dao" <<dao>> {
   }
 
   class LoanDao {
-    - Dao<Loan, Integer> dao
+    ' inherited DAO field
     + findAll() : List<Loan>
     + findById(int) : Loan
     + create(Loan) : void
@@ -117,7 +132,7 @@ package "dao" <<dao>> {
   }
 
   class ReservationDao {
-    - Dao<Reservation, Integer> dao
+    ' inherited DAO field
     + findAll() : List<Reservation>
     + findById(int) : Reservation
     + create(Reservation) : void
@@ -167,25 +182,25 @@ package "model" <<model>> {
     - int id
     - Member member
     - Book book
-    - String loanDate
-    - String dueDate
-    - String returnDate
+    - LocalDate loanDate
+    - LocalDate dueDate
+    - LocalDate returnDate
     - boolean returned
     - double overdueFee
     + Loan()
-    + Loan(Member, Book, String, String)
+    + Loan(Member, Book, LocalDate, LocalDate)
     + getId() : int
     + setId(int) : void
     + getMember() : Member
     + setMember(Member) : void
     + getBook() : Book
     + setBook(Book) : void
-    + getLoanDate() : String
-    + setLoanDate(String) : void
-    + getDueDate() : String
-    + setDueDate(String) : void
-    + getReturnDate() : String
-    + setReturnDate(String) : void
+    + getLoanDate() : LocalDate
+    + setLoanDate(LocalDate) : void
+    + getDueDate() : LocalDate
+    + setDueDate(LocalDate) : void
+    + getReturnDate() : LocalDate
+    + setReturnDate(LocalDate) : void
     + isReturned() : boolean
     + setReturned(boolean) : void
     + getOverdueFee() : double
@@ -196,7 +211,7 @@ package "model" <<model>> {
     - int id
     - Member member
     - Book book
-    - String reservedAt
+    - LocalDate reservedAt
     - boolean fulfilled
     + Reservation()
     + Reservation(Member, Book, String)
@@ -206,14 +221,19 @@ package "model" <<model>> {
     + setMember(Member) : void
     + getBook() : Book
     + setBook(Book) : void
-    + getReservedAt() : String
-    + setReservedAt(String) : void
+    + getReservedAt() : LocalDate
+    + setReservedAt(LocalDate) : void
     + isFulfilled() : boolean
     + setFulfilled(boolean) : void
   }
 }
 
 package "db" <<db>> {
+  class LocalDatePersister {
+    - {static} LocalDatePersister INSTANCE
+    + {static} getSingleton() : LocalDatePersister
+  }
+
   class Database {
     - ConnectionSource connectionSource
     + connectionSource() : ConnectionSource
@@ -240,6 +260,13 @@ ReservationService "1" --> "1" ReservationDao
 ReservationService "1" --> "1" BookDao
 ReservationService "1" --> "1" MemberDao
 ReservationService "1" --> "1" LoanDao
+
+BookDao --|> BaseDao
+MemberDao --|> BaseDao
+LoanDao --|> BaseDao
+ReservationDao --|> BaseDao
+Loan ..> LocalDatePersister
+Reservation ..> LocalDatePersister
 
 ' ----- dao -> model / db -----
 BookDao "1" --> "0..*" Book

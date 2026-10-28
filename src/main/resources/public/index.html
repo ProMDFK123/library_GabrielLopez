@@ -1,3 +1,6 @@
+<!--
+ Copyright (c) 2026. Arquitectura de Sistemas, DISC, UCN, Antofagasta.
+-->
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -9,6 +12,7 @@
 </head>
 <body>
 <div id="notifications" style="position: fixed; top: 1rem; right: 1rem; width: 22rem; z-index: 100;"></div>
+
 <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
         <a class="navbar-item has-text-weight-bold" href="/">
@@ -67,55 +71,84 @@
     <div class="container">
         <div class="tabs is-boxed">
             <ul>
-                <li class="is-active" data-tab="books"><a><span class="icon is-small"><i class="fas fa-book"></i></span><span>Books</span></a>
+                <li class="is-active" data-tab="books">
+                    <a>
+                        <span class="icon is-small"><i class="fas fa-book"></i></span>
+                        <span>Books</span>
+                    </a>
                 </li>
-                <li data-tab="members"><a><span class="icon is-small"><i
-                        class="fas fa-users"></i></span><span>Members</span></a></li>
-                <li data-tab="loans"><a><span class="icon is-small"><i
-                        class="fas fa-right-left"></i></span><span>Loans</span></a></li>
-                <li data-tab="reservations"><a><span class="icon is-small"><i class="fas fa-clock"></i></span><span>Reservations</span></a>
+                <li data-tab="members">
+                    <a>
+                        <span class="icon is-small"><i class="fas fa-users"></i></span>
+                        <span>Members</span>
+                    </a>
+                </li>
+                <li data-tab="loans">
+                    <a>
+                        <span class="icon is-small"><i class="fas fa-right-left"></i></span>
+                        <span>Loans</span>
+                    </a>
+                </li>
+                <li data-tab="reservations">
+                    <a>
+                        <span class="icon is-small"><i class="fas fa-clock"></i></span>
+                        <span>Reservations</span>
+                    </a>
                 </li>
             </ul>
         </div>
 
         <div id="tab-books" class="tab-pane">
             <form id="book-form" class="box">
-                <p class="title is-6 mb-3"><span class="icon"><i class="fas fa-plus"></i></span>Add a book</p>
+                <p class="title is-6 mb-3">
+                    <span class="icon"><i class="fas fa-plus"></i></span>
+                    Add a book
+                </p>
                 <div class="columns is-multiline is-variable is-2">
                     <div class="column is-3">
-                        <div class="field"><label class="label">Title</label>
-                            <div class="control"><input class="input" name="title" placeholder="Clean Code" required>
+                        <div class="field">
+                            <label class="label">Title</label>
+                            <div class="control">
+                                <input class="input" name="title" placeholder="Clean Code" required>
                             </div>
                         </div>
                     </div>
                     <div class="column is-3">
-                        <div class="field"><label class="label">Author</label>
-                            <div class="control"><input class="input" name="author" placeholder="Robert C. Martin"
-                                                        required></div>
+                        <div class="field">
+                            <label class="label">Author</label>
+                            <div class="control">
+                                <input class="input" name="author" placeholder="Robert C. Martin" required>
+                            </div>
                         </div>
                     </div>
                     <div class="column is-3">
-                        <div class="field"><label class="label">ISBN</label>
-                            <div class="control"><input class="input" name="isbn" placeholder="9780132350884" required>
+                        <div class="field">
+                            <label class="label">ISBN</label>
+                            <div class="control">
+                                <input class="input" name="isbn" placeholder="9780132350884" required>
                             </div>
                         </div>
                     </div>
                     <div class="column is-2">
-                        <div class="field"><label class="label">Copies</label>
-                            <div class="control"><input class="input" name="totalCopies" type="number" min="1"
-                                                        placeholder="1" required></div>
+                        <div class="field">
+                            <label class="label">Copies</label>
+                            <div class="control">
+                                <input class="input" name="totalCopies" type="number" min="1" placeholder="1" required>
+                            </div>
                         </div>
                     </div>
                     <div class="column is-1 is-flex is-align-items-flex-end">
                         <div class="field mb-0">
                             <div class="control">
-                                <button class="button is-info is-fullwidth"><span class="icon"><i
-                                        class="fas fa-plus"></i></span></button>
+                                <button class="button is-info is-fullwidth">
+                                    <span class="icon"><i class="fas fa-plus"></i></span>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </form>
+
             <div class="table-container">
                 <table class="table is-fullwidth is-hoverable">
                     <thead>
@@ -135,31 +168,40 @@
 
         <div id="tab-members" class="tab-pane is-hidden">
             <form id="member-form" class="box">
-                <p class="title is-6 mb-3"><span class="icon"><i class="fas fa-user-plus"></i></span>Register a member
+                <p class="title is-6 mb-3">
+                    <span class="icon"><i class="fas fa-user-plus"></i></span>
+                    Register a member
                 </p>
                 <div class="columns is-multiline is-variable is-2">
                     <div class="column is-5">
-                        <div class="field"><label class="label">Name</label>
-                            <div class="control"><input class="input" name="name" placeholder="Ada Lovelace" required>
+                        <div class="field">
+                            <label class="label">Name</label>
+                            <div class="control">
+                                <input class="input" name="name" placeholder="Ada Lovelace" required>
                             </div>
                         </div>
                     </div>
                     <div class="column is-5">
-                        <div class="field"><label class="label">Email</label>
-                            <div class="control"><input class="input" name="email" type="email"
-                                                        placeholder="ada@example.com" required></div>
+                        <div class="field">
+                            <label class="label">Email</label>
+                            <div class="control">
+                                <input class="input" name="email" type="email" placeholder="ada@example.com" required>
+                            </div>
                         </div>
                     </div>
                     <div class="column is-2 is-flex is-align-items-flex-end">
                         <div class="field mb-0">
                             <div class="control">
-                                <button class="button is-info is-fullwidth"><span class="icon"><i
-                                        class="fas fa-plus"></i></span><span>Add</span></button>
+                                <button class="button is-info is-fullwidth">
+                                    <span class="icon"><i class="fas fa-plus"></i></span>
+                                    <span>Add</span>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </form>
+
             <div class="table-container">
                 <table class="table is-fullwidth is-hoverable">
                     <thead>
@@ -176,31 +218,40 @@
 
         <div id="tab-loans" class="tab-pane is-hidden">
             <form id="loan-form" class="box">
-                <p class="title is-6 mb-3"><span class="icon"><i class="fas fa-right-left"></i></span>Check out a book
+                <p class="title is-6 mb-3">
+                    <span class="icon"><i class="fas fa-right-left"></i></span>
+                    Check out a book
                 </p>
                 <div class="columns is-multiline is-variable is-2">
                     <div class="column is-5">
-                        <div class="field"><label class="label">Member ID</label>
-                            <div class="control"><input class="input" name="memberId" type="number" placeholder="1"
-                                                        required></div>
+                        <div class="field">
+                            <label class="label">Member ID</label>
+                            <div class="control">
+                                <input class="input" name="memberId" type="number" placeholder="1" required>
+                            </div>
                         </div>
                     </div>
                     <div class="column is-5">
-                        <div class="field"><label class="label">Book ID</label>
-                            <div class="control"><input class="input" name="bookId" type="number" placeholder="1"
-                                                        required></div>
+                        <div class="field">
+                            <label class="label">Book ID</label>
+                            <div class="control">
+                                <input class="input" name="bookId" type="number" placeholder="1" required>
+                            </div>
                         </div>
                     </div>
                     <div class="column is-2 is-flex is-align-items-flex-end">
                         <div class="field mb-0">
                             <div class="control">
-                                <button class="button is-info is-fullwidth"><span class="icon"><i
-                                        class="fas fa-arrow-right"></i></span><span>Checkout</span></button>
+                                <button class="button is-info is-fullwidth">
+                                    <span class="icon"><i class="fas fa-arrow-right"></i></span>
+                                    <span>Checkout</span>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </form>
+
             <div class="table-container">
                 <table class="table is-fullwidth is-hoverable">
                     <thead>
@@ -221,30 +272,40 @@
 
         <div id="tab-reservations" class="tab-pane is-hidden">
             <form id="reservation-form" class="box">
-                <p class="title is-6 mb-3"><span class="icon"><i class="fas fa-clock"></i></span>Reserve a book</p>
+                <p class="title is-6 mb-3">
+                    <span class="icon"><i class="fas fa-clock"></i></span>
+                    Reserve a book
+                </p>
                 <div class="columns is-multiline is-variable is-2">
                     <div class="column is-5">
-                        <div class="field"><label class="label">Member ID</label>
-                            <div class="control"><input class="input" name="memberId" type="number" placeholder="1"
-                                                        required></div>
+                        <div class="field">
+                            <label class="label">Member ID</label>
+                            <div class="control">
+                                <input class="input" name="memberId" type="number" placeholder="1" required>
+                            </div>
                         </div>
                     </div>
                     <div class="column is-5">
-                        <div class="field"><label class="label">Book ID</label>
-                            <div class="control"><input class="input" name="bookId" type="number" placeholder="1"
-                                                        required></div>
+                        <div class="field">
+                            <label class="label">Book ID</label>
+                            <div class="control">
+                                <input class="input" name="bookId" type="number" placeholder="1" required>
+                            </div>
                         </div>
                     </div>
                     <div class="column is-2 is-flex is-align-items-flex-end">
                         <div class="field mb-0">
                             <div class="control">
-                                <button class="button is-info is-fullwidth"><span class="icon"><i
-                                        class="fas fa-plus"></i></span><span>Reserve</span></button>
+                                <button class="button is-info is-fullwidth">
+                                    <span class="icon"><i class="fas fa-plus"></i></span>
+                                    <span>Reserve</span>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </form>
+
             <div class="table-container">
                 <table class="table is-fullwidth is-hoverable">
                     <thead>

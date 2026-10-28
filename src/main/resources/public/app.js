@@ -1,6 +1,12 @@
+// noinspection JSUnresolvedVariable
+
 const esc = (s) => (s ?? '').toString().replace(/[&<>"]/g, (c) => (
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]
 ));
+
+const now = new Date();
+const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+const isOverdue = (l) => !l.returned && l.dueDate < today;
 
 class Api {
     static async request(path, options = {}) {
@@ -22,7 +28,6 @@ class Api {
 }
 
 class LibraryApp {
-
     constructor() {
         this.books = [];
         this.members = [];
@@ -67,7 +72,10 @@ class LibraryApp {
 
     bindForms() {
         this.bindForm('book-form', (d) => Api.post('/books', {
-            title: d.title, author: d.author, isbn: d.isbn, totalCopies: parseInt(d.totalCopies, 10),
+            title: d.title,
+            author: d.author,
+            isbn: d.isbn,
+            totalCopies: parseInt(d.totalCopies, 10),
         }).then(() => this.loadBooks()));
 
         this.bindForm('member-form', (d) => Api.post('/members', d).then(() => this.loadMembers()));
@@ -102,7 +110,12 @@ class LibraryApp {
     }
 
     async refresh() {
-        await Promise.all([this.loadBooks(), this.loadMembers(), this.loadLoans(), this.loadReservations()]);
+        await Promise.all([
+            this.loadBooks(),
+            this.loadMembers(),
+            this.loadLoans(),
+            this.loadReservations(),
+        ]);
     }
 
     async loadBooks() {
@@ -116,8 +129,8 @@ class LibraryApp {
                     <td><span class="tag is-light">${esc(b.isbn)}</span></td>
                     <td>${b.totalCopies}</td>
                     <td>${b.availableCopies === 0
-                        ? '<span class="tag is-danger is-light">Out of stock</span>'
-                        : b.availableCopies}</td>
+                ? '<span class="tag is-danger is-light">Out of stock</span>'
+                : b.availableCopies}</td>
                 </tr>`).join('')
             : this.emptyRow(6, 'No books yet. Add one above.');
         this.updateStats();
@@ -146,13 +159,13 @@ class LibraryApp {
                     <td>${esc(l.member?.name)}</td>
                     <td>${esc(l.dueDate)}</td>
                     <td>${l.returned
-                        ? '<span class="tag is-success is-light">Returned</span>'
-                        : l.overdue
-                            ? '<span class="tag is-danger is-light">Overdue</span>'
-                            : '<span class="tag is-warning is-light">On loan</span>'}</td>
+                ? '<span class="tag is-success is-light">Returned</span>'
+                : isOverdue(l)
+                    ? '<span class="tag is-danger is-light">Overdue</span>'
+                    : '<span class="tag is-warning is-light">On loan</span>'}</td>
                     <td>${l.overdueFee > 0
-                        ? `<span class="has-text-danger has-text-weight-semibold">$${l.overdueFee.toFixed(2)}</span>`
-                        : '<span class="has-text-grey">$0.00</span>'}</td>
+                ? `<span class="has-text-danger has-text-weight-semibold">$${l.overdueFee.toFixed(2)}</span>`
+                : '<span class="has-text-grey">$0.00</span>'}</td>
                     <td>${l.returned ? '' : `<button class="button is-small is-success is-light" data-action="return" data-id="${l.id}"><span class="icon is-small"><i class="fas fa-check"></i></span><span>Return</span></button>`}</td>
                 </tr>`).join('')
             : this.emptyRow(7, 'No loans yet.');
@@ -169,8 +182,8 @@ class LibraryApp {
                     <td>${esc(r.member?.name)}</td>
                     <td>${esc(r.reservedAt)}</td>
                     <td>${r.fulfilled
-                        ? '<span class="tag is-success is-light">Fulfilled</span>'
-                        : '<span class="tag is-info is-light">Pending</span>'}</td>
+                ? '<span class="tag is-success is-light">Fulfilled</span>'
+                : '<span class="tag is-info is-light">Pending</span>'}</td>
                     <td>${r.fulfilled ? '' : `<button class="button is-small is-success is-light" data-action="fulfill" data-id="${r.id}"><span class="icon is-small"><i class="fas fa-check"></i></span><span>Fulfill</span></button>`}</td>
                 </tr>`).join('')
             : this.emptyRow(6, 'No reservations yet.');
@@ -188,10 +201,10 @@ class LibraryApp {
     }
 
     updateStats() {
-        document.getElementById('stat-books').textContent = this.books.length;
-        document.getElementById('stat-members').textContent = this.members.length;
-        document.getElementById('stat-loans').textContent = this.loans.filter((l) => !l.returned).length;
-        document.getElementById('stat-overdue').textContent = this.loans.filter((l) => l.overdue).length;
+        document.getElementById('stat-books').textContent = String(this.books.length);
+        document.getElementById('stat-members').textContent = String(this.members.length);
+        document.getElementById('stat-loans').textContent = String(this.loans.filter((l) => !l.returned).length);
+        document.getElementById('stat-overdue').textContent = String(this.loans.filter((l) => isOverdue(l)).length);
     }
 
     emptyRow(colspan, message) {
@@ -208,4 +221,4 @@ class LibraryApp {
     }
 }
 
-new LibraryApp().init();
+void new LibraryApp().init();
