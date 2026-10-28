@@ -52,16 +52,12 @@ public class LocalDatePersister extends BaseDataType {
      * @throws SQLException if the database value cannot be read
      */
     @Override
-    public Object resultToSqlArg(
-            FieldType fieldType,
-            DatabaseResults results,
+    public Object resultToSqlArg(FieldType fieldType, DatabaseResults results,
             int columnPos
     ) throws SQLException {
         String value = results.getString(columnPos);
 
-        if (value == null) {
-            return null;
-        }
+        if (value == null) return null;
 
         return LocalDate.parse(value, FORMATTER);
     }
@@ -84,13 +80,9 @@ public class LocalDatePersister extends BaseDataType {
             Object sqlArg,
             int columnPos
     ) throws SQLException {
-        if (sqlArg == null) {
-            return null;
-        }
+        if (sqlArg == null) return null;
 
-        if (sqlArg instanceof LocalDate) {
-            return sqlArg;
-        }
+        if (sqlArg instanceof LocalDate) return sqlArg;
 
         return LocalDate.parse(sqlArg.toString(), FORMATTER);
     }
@@ -104,9 +96,7 @@ public class LocalDatePersister extends BaseDataType {
      */
     @Override
     public Object javaToSqlArg(FieldType fieldType, Object obj) {
-        if (obj == null) {
-            return null;
-        }
+        if (obj == null) return null;
 
         return ((LocalDate) obj).format(FORMATTER);
     }
@@ -123,9 +113,7 @@ public class LocalDatePersister extends BaseDataType {
             FieldType fieldType,
             String defaultStr
     ) {
-        if (defaultStr == null) {
-            return null;
-        }
+        if (defaultStr == null) return null;
 
         return LocalDate.parse(defaultStr, FORMATTER);
     }
