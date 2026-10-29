@@ -25,7 +25,10 @@ public final class Database {
     /** ORMLite connection source. */
     private final ConnectionSource connectionSource;
 
-    /** Opens the database and creates missing tables. */
+    /** Opens the database and creates missing tables.
+     * @param jdbcUrl JDBC URL used to connect to the database
+     * @throws SQLException if the connection or table initialization fails
+     */
     public Database(String jdbcUrl) throws SQLException {
         this.connectionSource = new JdbcConnectionSource(jdbcUrl);
         TableUtils.createTableIfNotExists(connectionSource, Book.class);
@@ -38,24 +41,30 @@ public final class Database {
 
     /** Seeds an empty database with sample books, three members, three loans, and one reservation. */
     public void seedIfEmpty() throws SQLException {
-        Dao<Book, Integer> bookDao = DaoManager.createDao(connectionSource, Book.class);
+        Dao<Book, Integer> bookDao = DaoManager.createDao(connectionSource,
+                Book.class);
         if (bookDao.queryForAll().isEmpty()) {
             log.debug("Seeding books");
             bookDao.create(new Book("Clean Code", "Robert C. Martin",
                     "9780132350884", 3));
-            bookDao.create(new Book("The Pragmatic Programmer", "Hunt & Thomas",
-                    "9780201616224", 2));
+            bookDao.create(new Book("The Pragmatic Programmer",
+                    "Hunt & Thomas", "9780201616224", 2));
             bookDao.create(new Book("Design Patterns", "Gamma et al.",
                     "9780201633610", 4));
         }
-        Dao<Member, Integer> memberDao = DaoManager.createDao(connectionSource, Member.class);
+        Dao<Member, Integer> memberDao = DaoManager.createDao(connectionSource,
+                Member.class);
         if (memberDao.queryForAll().isEmpty()) {
             log.debug("Seeding members");
-            memberDao.create(new Member("Ada Lovelace", "ada@example.com"));
-            memberDao.create(new Member("Grace Hopper", "grace@example.com"));
-            memberDao.create(new Member("Alan Turing", "alan@example.com"));
+            memberDao.create(new Member("Ada Lovelace",
+                    "ada@example.com"));
+            memberDao.create(new Member("Grace Hopper",
+                    "grace@example.com"));
+            memberDao.create(new Member("Alan Turing",
+                    "alan@example.com"));
         }
-        Dao<Loan, Integer> loanDao = DaoManager.createDao(connectionSource, Loan.class);
+        Dao<Loan, Integer> loanDao = DaoManager.createDao(connectionSource,
+                Loan.class);
         List<Loan> existingLoans = loanDao.queryForAll();
         if (existingLoans.isEmpty()) {
             log.debug("Seeding loans");
@@ -63,20 +72,20 @@ public final class Database {
             List<Member> members = memberDao.queryForAll();
             LocalDate today = LocalDate.now();
 
-            Loan returned = new Loan(members.get(0), books.get(0), today.minusDays(30),
-                    today.minusDays(9));
+            Loan returned = new Loan(members.get(0), books.get(0), today
+                    .minusDays(30), today.minusDays(9));
             returned.setReturned(true);
             returned.setReturnDate(today.minusDays(10));
             loanDao.create(returned);
 
-            Loan active = new Loan(members.get(1), books.get(2), today.minusDays(2),
-                    today.plusDays(12));
+            Loan active = new Loan(members.get(1), books.get(2), today
+                    .minusDays(2), today.plusDays(19));
             loanDao.create(active);
             books.get(2).setAvailableCopies(books.get(2).getAvailableCopies() - 1);
             bookDao.update(books.get(2));
 
-            Loan overdue = new Loan(members.get(2), books.get(1), today.minusDays(30),
-                    today.minusDays(9));
+            Loan overdue = new Loan(members.get(2), books.get(1), today
+                    .minusDays(30), today.minusDays(9));
             loanDao.create(overdue);
             books.get(1).setAvailableCopies(books.get(1).getAvailableCopies() - 1);
             bookDao.update(books.get(1));
