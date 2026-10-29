@@ -1,10 +1,8 @@
 @startuml
-' Library monolith — class diagram
-' Layered: controller -> service -> dao -> model (persistence via ORMLite)
+' Library monolith — Stage 2 class diagram
+' Layered: controller -> service -> dao -> model; BookService owns inventory changes.
 
 skin rose
-' left to right direction
-
 skinparam package<<controller>> {
   BackgroundColor #FCE4EC
   BorderColor #D81B60
@@ -30,23 +28,22 @@ hide stereotype
 package "controller" <<controller>> {
   class BookController {
     - BookService service
-    - BookDao dao
+    + BookController(BookService)
     + register(JavalinConfig) : void
   }
-
   class LoanController {
-    - MemberService memberService
     - LoanService loanService
+    + LoanController(LoanService)
     + register(JavalinConfig) : void
   }
-
   class MemberController {
     - MemberService service
+    + MemberController(MemberService)
     + register(JavalinConfig) : void
   }
-
   class ReservationController {
     - ReservationService service
+    + ReservationController(ReservationService)
     + register(JavalinConfig) : void
   }
 }
@@ -60,29 +57,32 @@ package "service" <<service>> {
     + borrow(int) : void
     + returnCopy(int) : void
   }
-
   class LoanService {
     - LoanDao loanDao
-    - BookDao bookDao
+    - MemberDao memberDao
+    - BookService bookService
+    - Clock clock
+    + LoanService(LoanDao, MemberDao, BookService, Clock)
     + findAll() : List<Loan>
+    + checkout(int, int) : Loan
     + returnLoan(int) : Loan
     + overdueLoans() : List<Loan>
+    - withAccruedFees(List<Loan>) : List<Loan>
+    - accruedFee(Loan, LocalDate) : double
   }
-
   class MemberService {
     - MemberDao memberDao
-    - BookDao bookDao
-    - LoanDao loanDao
+    + MemberService(MemberDao)
     + register(Member) : Member
     + findAll() : List<Member>
-    + checkout(int, int) : Loan
   }
-
   class ReservationService {
     - ReservationDao reservationDao
-    - BookDao bookDao
     - MemberDao memberDao
     - LoanDao loanDao
+    - BookService bookService
+    - Clock clock
+    + ReservationService(ReservationDao, MemberDao, LoanDao, BookService, Clock)
     + reserve(int, int) : Reservation
     + findAll() : List<Reservation>
     + fulfill(int) : Loan
@@ -105,39 +105,10 @@ package "dao" <<dao>> {
     + delete(T) : void
     + transaction(Callable<R>) : R
   }
-
-  class BookDao {
-    ' inherited DAO field
-    + findAll() : List<Book>
-    + findById(int) : Book
-    + create(Book) : void
-    + update(Book) : void
-    + delete(Book) : void
-  }
-
-  class MemberDao {
-    ' inherited DAO field
-    + findAll() : List<Member>
-    + findById(int) : Member
-    + create(Member) : void
-    + update(Member) : void
-  }
-
-  class LoanDao {
-    ' inherited DAO field
-    + findAll() : List<Loan>
-    + findById(int) : Loan
-    + create(Loan) : void
-    + update(Loan) : void
-  }
-
-  class ReservationDao {
-    ' inherited DAO field
-    + findAll() : List<Reservation>
-    + findById(int) : Reservation
-    + create(Reservation) : void
-    + update(Reservation) : void
-  }
+  class BookDao
+  class MemberDao
+  class LoanDao
+  class ReservationDao
 }
 
 package "model" <<model>> {
@@ -148,36 +119,12 @@ package "model" <<model>> {
     - String isbn
     - int totalCopies
     - int availableCopies
-    + Book()
-    + Book(String, String, String, int)
-    + getId() : int
-    + setId(int) : void
-    + getTitle() : String
-    + setTitle(String) : void
-    + getAuthor() : String
-    + setAuthor(String) : void
-    + getIsbn() : String
-    + setIsbn(String) : void
-    + getTotalCopies() : int
-    + setTotalCopies(int) : void
-    + getAvailableCopies() : int
-    + setAvailableCopies(int) : void
   }
-
   class Member {
     - int id
     - String name
     - String email
-    + Member()
-    + Member(String, String)
-    + getId() : int
-    + setId(int) : void
-    + getName() : String
-    + setName(String) : void
-    + getEmail() : String
-    + setEmail(String) : void
   }
-
   class Loan {
     - int id
     - Member member
@@ -187,44 +134,13 @@ package "model" <<model>> {
     - LocalDate returnDate
     - boolean returned
     - double overdueFee
-    + Loan()
-    + Loan(Member, Book, LocalDate, LocalDate)
-    + getId() : int
-    + setId(int) : void
-    + getMember() : Member
-    + setMember(Member) : void
-    + getBook() : Book
-    + setBook(Book) : void
-    + getLoanDate() : LocalDate
-    + setLoanDate(LocalDate) : void
-    + getDueDate() : LocalDate
-    + setDueDate(LocalDate) : void
-    + getReturnDate() : LocalDate
-    + setReturnDate(LocalDate) : void
-    + isReturned() : boolean
-    + setReturned(boolean) : void
-    + getOverdueFee() : double
-    + setOverdueFee(double) : void
   }
-
   class Reservation {
     - int id
     - Member member
     - Book book
     - LocalDate reservedAt
     - boolean fulfilled
-    + Reservation()
-    + Reservation(Member, Book, String)
-    + getId() : int
-    + setId(int) : void
-    + getMember() : Member
-    + setMember(Member) : void
-    + getBook() : Book
-    + setBook(Book) : void
-    + getReservedAt() : LocalDate
-    + setReservedAt(LocalDate) : void
-    + isFulfilled() : boolean
-    + setFulfilled(boolean) : void
   }
 }
 
@@ -233,7 +149,6 @@ package "db" <<db>> {
     - {static} LocalDatePersister INSTANCE
     + {static} getSingleton() : LocalDatePersister
   }
-
   class Database {
     - ConnectionSource connectionSource
     + connectionSource() : ConnectionSource
@@ -243,23 +158,20 @@ package "db" <<db>> {
 
 ' ----- controller -> service -----
 BookController "1" --> "1" BookService
-BookController "1" --> "1" BookDao
-LoanController "1" --> "1" MemberService
 LoanController "1" --> "1" LoanService
 MemberController "1" --> "1" MemberService
 ReservationController "1" --> "1" ReservationService
 
-' ----- service -> dao -----
+' ----- service -> DAO / service -----
 BookService "1" --> "1" BookDao
 LoanService "1" --> "1" LoanDao
-LoanService "1" --> "1" BookDao
+LoanService "1" --> "1" MemberDao
+LoanService "1" --> "1" BookService
 MemberService "1" --> "1" MemberDao
-MemberService "1" --> "1" BookDao
-MemberService "1" --> "1" LoanDao
 ReservationService "1" --> "1" ReservationDao
-ReservationService "1" --> "1" BookDao
 ReservationService "1" --> "1" MemberDao
 ReservationService "1" --> "1" LoanDao
+ReservationService "1" --> "1" BookService
 
 BookDao --|> BaseDao
 MemberDao --|> BaseDao
@@ -268,7 +180,7 @@ ReservationDao --|> BaseDao
 Loan ..> LocalDatePersister
 Reservation ..> LocalDatePersister
 
-' ----- dao -> model / db -----
+' ----- DAO -> model / database -----
 BookDao "1" --> "0..*" Book
 MemberDao "1" --> "0..*" Member
 LoanDao "1" --> "0..*" Loan
@@ -283,5 +195,4 @@ Loan "0..*" --> "1" Member
 Loan "0..*" --> "1" Book
 Reservation "0..*" --> "1" Member
 Reservation "0..*" --> "1" Book
-
 @enduml
