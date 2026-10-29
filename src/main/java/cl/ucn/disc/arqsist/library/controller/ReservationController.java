@@ -33,4 +33,3 @@ public final class ReservationController {
                 .json(service.fulfill(Integer.parseInt(ctx.pathParam("id")))));
     }
 }
-//aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
