@@ -17,6 +17,8 @@ import cl.ucn.disc.arqsist.library.service.LoanService;
 import cl.ucn.disc.arqsist.library.service.MemberService;
 import cl.ucn.disc.arqsist.library.service.NotFoundException;
 import cl.ucn.disc.arqsist.library.service.ReservationService;
+import cl.ucn.disc.arqsist.library.grpc.GrpcServer;
+import cl.ucn.disc.arqsist.library.grpc.MemberGrpcService;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
@@ -85,7 +87,22 @@ public final class App {
             loanController.register(config);
             reservationController.register(config);
         });
-        log.info("Starting Library application on port 7070");
+        log.info("Starting REST server on port 7070");
         app.start(7070);
+
+        log.info("Starting gRPC server on port 50051");
+
+        GrpcServer grpcServer = new GrpcServer(50051);
+        grpcServer.start(new MemberGrpcService(memberService));
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("Stopping gRPC server");
+            grpcServer.stop();
+
+            log.info("Stopping REST server");
+            app.stop();
+        }));
+
+        grpcServer.awaitTermination();
     }
 }
