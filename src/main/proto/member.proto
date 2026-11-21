@@ -1,0 +1,36 @@
+
+syntax = "proto3";
+
+package library;
+
+option java_multiple_files = true;
+option java_package = "cl.ucn.disc.arqsist.library.grpc";
+option java_outer_classname = "MemberProto";
+
+service MemberService {
+  rpc GetMember (GetMemberRequest) returns (MemberResponse);
+  rpc ListMembers (ListMembersRequest) returns (ListMembersResponse);
+  rpc CreateMember (CreateMemberRequest) returns (MemberResponse);
+}
+
+message GetMemberRequest {
+  int32 id = 1;
+}
+
+message ListMembersRequest {
+}
+
+message CreateMemberRequest {
+  string name = 1;
+  string email = 2;
+}
+
+message MemberResponse {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message ListMembersResponse {
+  repeated MemberResponse members = 1;
+}
