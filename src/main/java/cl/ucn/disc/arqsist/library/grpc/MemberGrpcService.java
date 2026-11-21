@@ -8,7 +8,6 @@ import cl.ucn.disc.arqsist.library.model.Member;
 import cl.ucn.disc.arqsist.library.service.NotFoundException;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import java.util.List;
 
 /**
  * Implements the gRPC operations for member management.
