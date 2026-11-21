@@ -1,8 +1,11 @@
+
 @startuml
-' Library monolith — Stage 2 class diagram
-' Layered: controller -> service -> dao -> model; BookService owns inventory changes.
+' Library monolith — Stage 3: gRPC Member Service
+' Layered: controller -> service -> dao -> model.
+' gRPC provides an additional interface to MemberService.
 
 skin rose
+
 skinparam package<<controller>> {
   BackgroundColor #FCE4EC
   BorderColor #D81B60
@@ -23,7 +26,16 @@ skinparam package<<db>> {
   BackgroundColor #F3E5F5
   BorderColor #7B1FA2
 }
+skinparam package<<grpc>> {
+  BackgroundColor #E0F2F1
+  BorderColor #00897B
+}
+
 hide stereotype
+
+' ==================================================
+' CONTROLLERS
+' ==================================================
 
 package "controller" <<controller>> {
   class BookController {
@@ -31,22 +43,29 @@ package "controller" <<controller>> {
     + BookController(BookService)
     + register(JavalinConfig) : void
   }
+
   class LoanController {
     - LoanService loanService
     + LoanController(LoanService)
     + register(JavalinConfig) : void
   }
+
   class MemberController {
     - MemberService service
     + MemberController(MemberService)
     + register(JavalinConfig) : void
   }
+
   class ReservationController {
     - ReservationService service
     + ReservationController(ReservationService)
     + register(JavalinConfig) : void
   }
 }
+
+' ==================================================
+' SERVICES
+' ==================================================
 
 package "service" <<service>> {
   class BookService {
@@ -57,6 +76,7 @@ package "service" <<service>> {
     + borrow(int) : void
     + returnCopy(int) : void
   }
+
   class LoanService {
     - LoanDao loanDao
     - MemberDao memberDao
@@ -70,12 +90,15 @@ package "service" <<service>> {
     - withAccruedFees(List<Loan>) : List<Loan>
     - accruedFee(Loan, LocalDate) : double
   }
+
   class MemberService {
     - MemberDao memberDao
     + MemberService(MemberDao)
     + register(Member) : Member
+    + findById(int) : Member
     + findAll() : List<Member>
   }
+
   class ReservationService {
     - ReservationDao reservationDao
     - MemberDao memberDao
@@ -87,13 +110,71 @@ package "service" <<service>> {
     + findAll() : List<Reservation>
     + fulfill(int) : Loan
   }
+
   class LoanPolicy {
     {static} + int DUE_DAYS = 21
     {static} + double FEE_PER_DAY = 1.0
     {static} + dueDate(LocalDate) : LocalDate
   }
+
   class NotFoundException extends RuntimeException
 }
+
+' ==================================================
+' GRPC
+' ==================================================
+
+package "grpc" <<grpc>> {
+
+  class GrpcServer {
+    - int port
+    - Server server
+    + GrpcServer(int)
+    + start(MemberGrpcService) : void
+    + stop() : void
+    + awaitTermination() : void
+  }
+
+  class MemberGrpcService {
+    - MemberService memberService
+    + MemberGrpcService(MemberService)
+    + getMember(GetMemberRequest, StreamObserver) : void
+    + listMembers(ListMembersRequest, StreamObserver) : void
+    + createMember(CreateMemberRequest, StreamObserver) : void
+    - toResponse(Member) : MemberResponse
+  }
+
+  class MemberServiceImplBase <<generated>> {
+    + getMember(GetMemberRequest, StreamObserver) : void
+    + listMembers(ListMembersRequest, StreamObserver) : void
+    + createMember(CreateMemberRequest, StreamObserver) : void
+  }
+
+  class GetMemberRequest <<protobuf>> {
+    - int id
+  }
+
+  class ListMembersRequest <<protobuf>>
+
+  class CreateMemberRequest <<protobuf>> {
+    - String name
+    - String email
+  }
+
+  class MemberResponse <<protobuf>> {
+    - int id
+    - String name
+    - String email
+  }
+
+  class ListMembersResponse <<protobuf>> {
+    - List<MemberResponse> members
+  }
+}
+
+' ==================================================
+' DAO
+' ==================================================
 
 package "dao" <<dao>> {
   abstract class BaseDao<T> {
@@ -105,11 +186,16 @@ package "dao" <<dao>> {
     + delete(T) : void
     + transaction(Callable<R>) : R
   }
+
   class BookDao
   class MemberDao
   class LoanDao
   class ReservationDao
 }
+
+' ==================================================
+' MODEL
+' ==================================================
 
 package "model" <<model>> {
   class Book {
@@ -120,11 +206,13 @@ package "model" <<model>> {
     - int totalCopies
     - int availableCopies
   }
+
   class Member {
     - int id
     - String name
     - String email
   }
+
   class Loan {
     - int id
     - Member member
@@ -135,6 +223,7 @@ package "model" <<model>> {
     - boolean returned
     - double overdueFee
   }
+
   class Reservation {
     - int id
     - Member member
@@ -144,11 +233,16 @@ package "model" <<model>> {
   }
 }
 
+' ==================================================
+' DATABASE
+' ==================================================
+
 package "db" <<db>> {
   class LocalDatePersister {
     - {static} LocalDatePersister INSTANCE
     + {static} getSingleton() : LocalDatePersister
   }
+
   class Database {
     - ConnectionSource connectionSource
     + connectionSource() : ConnectionSource
@@ -156,43 +250,86 @@ package "db" <<db>> {
   }
 }
 
-' ----- controller -> service -----
+' ==================================================
+' CONTROLLER -> SERVICE
+' ==================================================
+
 BookController "1" --> "1" BookService
 LoanController "1" --> "1" LoanService
 MemberController "1" --> "1" MemberService
 ReservationController "1" --> "1" ReservationService
 
-' ----- service -> DAO / service -----
+' ==================================================
+' SERVICE -> DAO / SERVICE
+' ==================================================
+
 BookService "1" --> "1" BookDao
+
 LoanService "1" --> "1" LoanDao
 LoanService "1" --> "1" MemberDao
 LoanService "1" --> "1" BookService
+
 MemberService "1" --> "1" MemberDao
+
 ReservationService "1" --> "1" ReservationDao
 ReservationService "1" --> "1" MemberDao
 ReservationService "1" --> "1" LoanDao
 ReservationService "1" --> "1" BookService
 
+' ==================================================
+' GRPC -> SERVICE / GRPC SERVER
+' ==================================================
+
+GrpcServer "1" --> "1" MemberGrpcService
+MemberGrpcService "1" --> "1" MemberService
+MemberGrpcService --|> MemberServiceImplBase
+
+' gRPC request and response types
+MemberGrpcService ..> GetMemberRequest
+MemberGrpcService ..> ListMembersRequest
+MemberGrpcService ..> CreateMemberRequest
+MemberGrpcService ..> MemberResponse
+MemberGrpcService ..> ListMembersResponse
+
+ListMembersResponse "1" o-- "0..*" MemberResponse
+
+' ==================================================
+' DAO INHERITANCE
+' ==================================================
+
 BookDao --|> BaseDao
 MemberDao --|> BaseDao
 LoanDao --|> BaseDao
 ReservationDao --|> BaseDao
-Loan ..> LocalDatePersister
-Reservation ..> LocalDatePersister
 
-' ----- DAO -> model / database -----
+' ==================================================
+' DAO -> MODEL / DATABASE
+' ==================================================
+
 BookDao "1" --> "0..*" Book
 MemberDao "1" --> "0..*" Member
 LoanDao "1" --> "0..*" Loan
 ReservationDao "1" --> "0..*" Reservation
+
 BookDao "1" ..> "1" Database
 MemberDao "1" ..> "1" Database
 LoanDao "1" ..> "1" Database
 ReservationDao "1" ..> "1" Database
 
-' ----- model relationships -----
+' ==================================================
+' MODEL RELATIONSHIPS
+' ==================================================
+
 Loan "0..*" --> "1" Member
 Loan "0..*" --> "1" Book
+
 Reservation "0..*" --> "1" Member
 Reservation "0..*" --> "1" Book
+
+Loan ..> LocalDatePersister
+Reservation ..> LocalDatePersister
+
+' gRPC response represents the Member model
+MemberResponse ..> Member : maps to
+
 @enduml
